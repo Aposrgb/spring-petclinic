@@ -2,28 +2,52 @@ pipeline {
     agent any
 
     stages {
-        stage('Build&Test') {
-            steps {
-                bat '%JENKINS_HOME%\\workspace\\Practice2\\build.bat'
-            }
-        }
+        	stage('Build&Test') {
+            		steps {
+                		bat "C:/wwww/Manager.bat"
+            		}
+        	}
 		
 		stage('Archive') {
-			steps {
-				zip zipFile: '%JENKINS_HOME%/workspace/Practice2_BUILDS' + env.BUILD_NUMBER.toString() + '.zip', dir: '%JENKINS_HOME%/workspace/Practice2/target'
-			}
-		}
+            		steps {
+                		bat """
+		    			cd C:/wwww
+					md Archive
+					cd Archive
+		    			tar.exe -a -c -f ${env.BUILD_NUMBER.toString()}.zip 								C:/wwww/spring-petclinic
+				"""
+	    		}
+        	}
 		
-		stage('Deploy') {
-			steps {
-				unzip zipFile: '%JENKINS_HOME%/workspace/Practice2_BUILDS' + env.BUILD_NUMBER.toString() + '.zip', dir: '%JENKINS_HOME%/workspace/Practice2_BUILDS/DeployedBuilds/' + env.BUILD_NUMBER.toString()
-			}
-		}
+		stage('Send Archive'){
+            		steps{
+                		bat """
+		    			cd C:/wwww
+					md BUILD
+					cd BUILD
+                    			RD /S /Q FOR_PROJECT
+	            			tar.exe -x -f C:/wwww/Archive/${env.BUILD_NUMBER.toString()}.zip
+				"""
+            		}
+        	}
     }
 	
-	post { 
-		always { 
-			emailext body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}", recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']], subject: "Jenkins Build ${currentBuild.currentResult}: Job ${env.JOB_NAME}" 
-		} 
+	post{
+	success{
+		mail bcc: '', body: 'Hi my friend, i from jenkins, my app build ended', 
+            	cc: '',
+            	from: '',
+        	replyTo: '', 
+           	subject: 'Jenkins Job', 
+           	to: 'obboska@gmail.com'
 	}
+	failure{
+		mail bcc: '', body: 'BUILD ENDED WITH ERRORS', 
+            	cc: '',
+            	from: '',
+            	replyTo: '', 
+            	subject: 'Jenkins Job', 
+            	to: 'obboska@gmail.com'
+	}
+    }
 }
