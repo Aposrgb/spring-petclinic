@@ -4,7 +4,7 @@ pipeline {
     stages {
         	stage('Build&Test') {
             		steps {
-                		bat "C:/wwww/Manager.bat"
+                		bat "C:/wwww/spring-petclinic/build.bat"
             		}
         	}
 		
