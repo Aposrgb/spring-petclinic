@@ -31,23 +31,4 @@ pipeline {
             		}
         	}
     }
-	
-	post{
-	success{
-		mail bcc: '', body: 'Hi my friend, i from jenkins, my app build ended', 
-            	cc: '',
-            	from: '',
-        	replyTo: '', 
-           	subject: 'Jenkins Job', 
-           	to: 'obboska@gmail.com'
-	}
-	failure{
-		mail bcc: '', body: 'BUILD ENDED WITH ERRORS', 
-            	cc: '',
-            	from: '',
-            	replyTo: '', 
-            	subject: 'Jenkins Job', 
-            	to: 'obboska@gmail.com'
-	}
-    }
 }
