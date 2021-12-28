@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+
+    stages {
+        	stage('Build&Test') {
+            		steps {
+                		bat "C:/wwww/spring-petclinic/build.bat"
+            		}
+        	}
+		
+		stage('Archive') {
+            		steps {
+                		bat """
+		    			cd C:/wwww
+					md Archive
+					cd Archive
+		    			tar.exe -a -c -f ${env.BUILD_NUMBER.toString()}.zip 								C:/wwww/spring-petclinic
+				"""
+	    		}
+        	}
+		
+		stage('Send Archive'){
+            		steps{
+                		bat """
+		    			cd C:/wwww
+					md BUILD
+					cd BUILD
+                    			RD /S /Q FOR_PROJECT
+	            			tar.exe -x -f C:/wwww/Archive/${env.BUILD_NUMBER.toString()}.zip
+				"""
+            		}
+        	}
+    }
+}

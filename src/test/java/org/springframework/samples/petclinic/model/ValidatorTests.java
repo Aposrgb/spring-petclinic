@@ -16,14 +16,15 @@
 
 package org.springframework.samples.petclinic.model;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import java.util.Locale;
+import java.util.Set;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.util.Locale;
-import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +47,7 @@ class ValidatorTests {
 		Person person = new Person();
 		person.setFirstName("");
 		person.setLastName("smith");
-
+		person.setAge(34);
 		Validator validator = createValidator();
 		Set<ConstraintViolation<Person>> constraintViolations = validator.validate(person);
 
@@ -54,6 +55,15 @@ class ValidatorTests {
 		ConstraintViolation<Person> violation = constraintViolations.iterator().next();
 		assertThat(violation.getPropertyPath().toString()).isEqualTo("firstName");
 		assertThat(violation.getMessage()).isEqualTo("must not be empty");
+
+	}
+
+	@Test
+	void validateAge() {
+		Person person = new Person();
+		person.setAge(21);
+
+		assertThat(person.getAge() >= 18);
 	}
 
 }

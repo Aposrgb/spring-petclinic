@@ -15,14 +15,6 @@
  */
 package org.springframework.samples.petclinic.owner;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.validation.Valid;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.samples.petclinic.visit.VisitRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,8 +24,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.Valid;
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Juergen Hoeller
@@ -48,7 +44,7 @@ class OwnerController {
 
 	private final OwnerRepository owners;
 
-	private final VisitRepository visits;
+	private VisitRepository visits;
 
 	public OwnerController(OwnerRepository clinicService, VisitRepository visits) {
 		this.owners = clinicService;
@@ -85,8 +81,7 @@ class OwnerController {
 	}
 
 	@GetMapping("/owners")
-	public String processFindForm(@RequestParam(defaultValue = "1") int page, Owner owner, BindingResult result,
-			Model model) {
+	public String processFindForm(Owner owner, BindingResult result, Map<String, Object> model) {
 
 		// allow parameterless GET request for /owners to return all records
 		if (owner.getLastName() == null) {
@@ -94,41 +89,22 @@ class OwnerController {
 		}
 
 		// find owners by last name
-		String lastName = owner.getLastName();
-		Page<Owner> ownersResults = findPaginatedForOwnersLastName(page, lastName);
-		if (ownersResults.isEmpty()) {
+		Collection<Owner> results = this.owners.findByLastName(owner.getLastName());
+		if (results.isEmpty()) {
 			// no owners found
 			result.rejectValue("lastName", "notFound", "not found");
 			return "owners/findOwners";
 		}
-		else if (ownersResults.getTotalElements() == 1) {
+		else if (results.size() == 1) {
 			// 1 owner found
-			owner = ownersResults.iterator().next();
+			owner = results.iterator().next();
 			return "redirect:/owners/" + owner.getId();
 		}
 		else {
 			// multiple owners found
-			lastName = owner.getLastName();
-			return addPaginationModel(page, model, lastName, ownersResults);
+			model.put("selections", results);
+			return "owners/ownersList";
 		}
-	}
-
-	private String addPaginationModel(int page, Model model, String lastName, Page<Owner> paginated) {
-		model.addAttribute("listOwners", paginated);
-		List<Owner> listOwners = paginated.getContent();
-		model.addAttribute("currentPage", page);
-		model.addAttribute("totalPages", paginated.getTotalPages());
-		model.addAttribute("totalItems", paginated.getTotalElements());
-		model.addAttribute("listOwners", listOwners);
-		return "owners/ownersList";
-	}
-
-	private Page<Owner> findPaginatedForOwnersLastName(int page, String lastname) {
-
-		int pageSize = 5;
-		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByLastName(lastname, pageable);
-
 	}
 
 	@GetMapping("/owners/{ownerId}/edit")
